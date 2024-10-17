@@ -15,6 +15,9 @@ public:
   bool operator>(const Z &other) const override;
   void print(std::ostream &os) const override;
   bool isUnit() const override;
+
+  static Z one();
+  static Z zero();
 };
 
 #endif
