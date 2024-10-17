@@ -29,5 +29,6 @@ int main() {
   // poly3.printAsFunction();
   // poly3.printAsSequence();
   Polynomial<Zmod> test = poly1 / poly2;
+  test.printAsFunction();
   return 0;
 }

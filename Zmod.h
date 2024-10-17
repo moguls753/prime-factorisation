@@ -3,22 +3,25 @@
 
 #include "Ring.h"
 
-class Zmod : public Ring<Zmod> {
+template <int Modulus> class Zmod : public Ring<Zmod<Modulus>> {
 private:
-  int modulus;
+  mpz_class originalValue;
 
 public:
-  Zmod() : Ring(0) {}
-  Zmod(const mpz_class &value, int modulus);
-  mpz_class reducedValue() const;
-  Zmod operator+(const Zmod &other) const override;
-  Zmod operator*(const Zmod &other) const override;
-  Zmod abs() const override;
-  bool operator!=(const Zmod &other) const override;
-  bool operator<(const Zmod &other) const override;
-  bool operator>(const Zmod &other) const override;
+  Zmod();
+  Zmod(const mpz_class &value);
+  mpz_class originalValue() const;
+  Zmod<Modulus> operator+(const Zmod<Modulus> &other) const override;
+  Zmod<Modulus> operator*(const Zmod<Modulus> &other) const override;
+  Zmod<Modulus> abs() const override;
+  bool operator!=(const Zmod<Modulus> &other) const override;
+  bool operator<(const Zmod<Modulus> &other) const override;
+  bool operator>(const Zmod<Modulus> &other) const override;
   void print(std::ostream &os) const override;
   bool isUnit() const override;
+
+  static Zmod<Modulus> one();
+  static Zmod<Modulus> zero();
 };
 
 #endif
