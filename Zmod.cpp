@@ -28,3 +28,5 @@ bool Zmod::operator>(const Zmod &other) const {
 }
 
 void Zmod::print(std::ostream &os) const { os << value; }
+
+bool Zmod::isUnit() const { return (reducedValue() != 0); }

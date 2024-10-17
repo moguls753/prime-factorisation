@@ -21,6 +21,7 @@ public:
     ring.print(os);
     return os;
   }
+  virtual bool isUnit() const = 0;
 };
 
 #endif

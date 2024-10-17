@@ -18,6 +18,7 @@ public:
   bool operator<(const Zmod &other) const override;
   bool operator>(const Zmod &other) const override;
   void print(std::ostream &os) const override;
+  bool isUnit() const override;
 };
 
 #endif

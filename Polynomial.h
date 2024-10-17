@@ -3,7 +3,6 @@
 
 #include "Z.h"
 #include "Zmod.h"
-#include <gmpxx.h>
 #include <iostream>
 #include <ostream>
 #include <vector>
@@ -16,6 +15,7 @@ public:
   Polynomial(const std::vector<R> &coefficients);
   int degree() const;
   std::vector<R> getCoefficients() const;
+  R leadingCoefficient() const;
   Polynomial<R> operator+(const Polynomial<R> &other) const;
   Polynomial<R> operator*(const Polynomial<R> &other) const;
   Polynomial<R> operator/(const Polynomial<R> &other) const;
@@ -41,6 +41,10 @@ template <typename R> int Polynomial<R>::degree() const {
 
 template <typename R> std::vector<R> Polynomial<R>::getCoefficients() const {
   return coefficients;
+}
+
+template <typename R> R Polynomial<R>::leadingCoefficient() const {
+  return coefficients[degree()];
 }
 
 template <typename R> void Polynomial<R>::printAsSequence() const {
@@ -117,9 +121,15 @@ Polynomial<R> Polynomial<R>::operator*(const Polynomial<R> &other) const {
 
 template <typename R>
 Polynomial<R> Polynomial<R>::operator/(const Polynomial<R> &other) const {
+  if (!other.leadingCoefficient().isUnit()) {
+    throw std::invalid_argument(
+        "Der Leitkoeffizient des Divisors ist keine Einheit in " +
+        std::string(typeid(R).name()));
+  }
   // Polynomial<R> r = *this;
   // if (typeid(other.getCoefficients().back()) == typeid(Zmod)) {
   //   // Es handelt sich um Zmod<mpz_class>
   // }
+  return other;
 }
 #endif

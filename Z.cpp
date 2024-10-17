@@ -15,3 +15,5 @@ bool Z::operator<(const Z &other) const { return (value < other.getValue()); }
 bool Z::operator>(const Z &other) const { return (value > other.getValue()); }
 
 void Z::print(std::ostream &os) const { os << value; }
+
+bool Z::isUnit() const { return (value == -1 || value == 1); }

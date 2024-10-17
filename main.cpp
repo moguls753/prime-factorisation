@@ -15,18 +15,19 @@ int main() {
   std::cout << z.getValue() << std::endl;
 
   std::vector<Z> coefficients1 = {Z(1), Z(2), Z(3)};
-  std::vector<Z> coefficients2 = {z, z, z};
+  std::vector<Zmod> coefficients2 = {z1, z1, z1};
 
-  Polynomial<Z> poly1(coefficients1);
-  Polynomial<Z> poly2(coefficients2);
+  Polynomial<Zmod> poly1(coefficients2);
+  Polynomial<Zmod> poly2(coefficients2);
 
-  Polynomial<Z> poly3 = poly1 + poly2;
-
-  poly3.printAsSequence();
-
-  poly3 = poly1 * poly2;
-
-  poly3.printAsFunction();
-  poly3.printAsSequence();
+  // Polynomial<Z> poly3 = poly1 + poly2;
+  //
+  // poly3.printAsSequence();
+  //
+  // poly3 = poly1 * poly2;
+  //
+  // poly3.printAsFunction();
+  // poly3.printAsSequence();
+  Polynomial<Zmod> test = poly1 / poly2;
   return 0;
 }

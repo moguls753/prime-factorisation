@@ -14,6 +14,7 @@ public:
   bool operator<(const Z &other) const override;
   bool operator>(const Z &other) const override;
   void print(std::ostream &os) const override;
+  bool isUnit() const override;
 };
 
 #endif
