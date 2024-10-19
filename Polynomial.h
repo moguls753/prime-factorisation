@@ -17,8 +17,10 @@ public:
   std::vector<R> getCoefficients() const;
   R leadingCoefficient() const;
   Polynomial<R> operator+(const Polynomial<R> &other) const;
+  Polynomial<R> operator-() const;
   Polynomial<R> operator*(const Polynomial<R> &other) const;
-  Polynomial<R> operator/(const Polynomial<R> &other) const;
+  std::pair<Polynomial<R>, Polynomial<R>>
+  operator/(const Polynomial<R> &other) const;
   void printAsSequence() const;
   void printAsFunction() const;
 };
@@ -31,7 +33,7 @@ Polynomial<R>::Polynomial(const std::vector<R> &coefficients)
 
 template <typename R> int Polynomial<R>::degree() const {
   for (int i = coefficients.size() - 1; i >= 0; i--) {
-    if (coefficients[i] != coefficients[i].zero())
+    if (coefficients[i] != R(0))
       return i;
   }
   // mathematisch gesehen hat das Nullpolynom den Grad -1, hier aber 0 aus
@@ -58,19 +60,19 @@ template <typename R> void Polynomial<R>::printAsSequence() const {
 
 template <typename R> void Polynomial<R>::printAsFunction() const {
   for (int i = degree(); i >= 0; i--) {
-    if (coefficients[i] != coefficients[i].zero()) {
+    if (coefficients[i] != R(0)) {
       // Vorzeichen für höchsten Grad setzen?
       if (i == degree()) {
         if (coefficients[i] < R(0)) {
           std::cout << "-";
         }
       } else {
-        std::cout << (coefficients[i] < coefficients[i].zero() ? " - " : " + ");
+        std::cout << (coefficients[i] < R(0) ? " - " : " + ");
       }
 
       // Koeffizienten nur anzeigen, wenn sie nicht 1 oder -1 sind oder bei
       // Konstante (i == 0)
-      if (coefficients[i].abs() != coefficients[i].one() || i == 0) {
+      if (coefficients[i].abs() != R(1) || i == 0) {
         std::cout << coefficients[i].abs();
       }
 
@@ -94,13 +96,21 @@ Polynomial<R> Polynomial<R>::operator+(const Polynomial<R> &other) const {
 
   // "kürzeres" Polynom mit Nullen auffüllen, dann komponentenweise addieren
   for (int i = 0; i < maxSize; i++) {
-    R coeff1 =
-        (i < coefficients.size()) ? coefficients[i] : coefficients[i].zero();
-    R coeff2 = (i < other.coefficients.size()) ? other.coefficients[i]
-                                               : coefficients[i].zero();
+    R coeff1 = (i < coefficients.size()) ? coefficients[i] : R(0);
+    R coeff2 = (i < other.coefficients.size()) ? other.coefficients[i] : R(0);
     resultCoefficients[i] = coeff1 + coeff2;
   }
   return Polynomial(resultCoefficients);
+}
+
+template <typename R> Polynomial<R> Polynomial<R>::operator-() const {
+  std::vector<R> negativeCoefficients(coefficients.size());
+
+  for (int i = 0; i < negativeCoefficients.size(); i++) {
+    negativeCoefficients[i] = -coefficients[i];
+  }
+
+  return Polynomial(negativeCoefficients);
 }
 
 template <typename R>
@@ -112,10 +122,9 @@ Polynomial<R> Polynomial<R>::operator*(const Polynomial<R> &other) const {
   for (int k = 0; k < resultCoefficients.size(); k++) {
     for (int i = 0; i <= k; i++) {
       // sicherstellen, dass hinter den Grenzen mit 0 multipliziert wird
-      R c1 =
-          (i < coefficients.size()) ? coefficients[i] : coefficients[i].zero();
+      R c1 = (i < coefficients.size()) ? coefficients[i] : R(0);
       R c2 = ((k - i) < other.coefficients.size()) ? other.coefficients[k - i]
-                                                   : coefficients[i].zero();
+                                                   : R(0);
       resultCoefficients[k] = resultCoefficients[k] + c1 * c2;
     }
   }
@@ -123,16 +132,26 @@ Polynomial<R> Polynomial<R>::operator*(const Polynomial<R> &other) const {
 }
 
 template <typename R>
-Polynomial<R> Polynomial<R>::operator/(const Polynomial<R> &other) const {
+std::pair<Polynomial<R>, Polynomial<R>>
+Polynomial<R>::operator/(const Polynomial<R> &other) const {
   if (!other.leadingCoefficient().isUnit()) {
     throw std::invalid_argument(
         "Der Leitkoeffizient des Divisors ist keine Einheit in " +
         std::string(typeid(R).name()));
   }
-  // Polynomial<R> r = *this;
-  // if (typeid(other.getCoefficients().back()) == typeid(Zmod)) {
-  //   // Es handelt sich um Zmod<mpz_class>
-  // }
-  return other;
+  Polynomial<R> r = *this;
+  R u = other.leadingCoefficient().invert();
+  std::vector<R> q(degree() - other.degree() + 1);
+  for (int i = degree() - other.degree(); i >= 0; i--) {
+    if (r.degree() == other.degree() + i) {
+      q[i] = r.leadingCoefficient() * u;
+      Polynomial<R> monom = Polynomial({q[i]});
+      r = r + (-(monom * other));
+    } else {
+      q[i] = R(0);
+    }
+  }
+  Polynomial<R> result = Polynomial(q);
+  return std::make_pair(result, r);
 }
 #endif

@@ -9,15 +9,14 @@ public:
   Z(const mpz_class &value);
   Z operator+(const Z &other) const override;
   Z operator*(const Z &other) const override;
+  Z operator-() const override;
   Z abs() const override;
   bool operator!=(const Z &other) const override;
   bool operator<(const Z &other) const override;
   bool operator>(const Z &other) const override;
   void print(std::ostream &os) const override;
   bool isUnit() const override;
-
-  static Z one();
-  static Z zero();
+  Z invert() const override;
 };
 
 #endif

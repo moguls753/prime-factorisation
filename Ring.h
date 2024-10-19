@@ -11,6 +11,7 @@ public:
   Ring(const mpz_class &value) : value(value) {};
   mpz_class getValue() const { return value; };
   virtual T operator+(const T &other) const = 0;
+  virtual T operator-() const = 0;
   virtual T operator*(const T &other) const = 0;
   virtual T abs() const = 0;
   virtual bool operator!=(const T &other) const = 0;
@@ -22,6 +23,7 @@ public:
     return os;
   }
   virtual bool isUnit() const = 0;
+  virtual T invert() const = 0;
 };
 
 #endif

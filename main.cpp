@@ -5,30 +5,24 @@
 #include <iostream>
 
 int main() {
-  Zmod z1(5, 7);
-  Zmod z2(5, 7);
-  Zmod z3 = z1 * z2;
+  Zmod<7> z1 = Zmod<7>(5);
+  Zmod<7> z2 = Zmod<7>(5);
+  Zmod<7> z3 = z1 * z2;
 
   Z z(5);
 
-  std::cout << z3.reducedValue() << std::endl;
-  std::cout << z.getValue() << std::endl;
+  // std::cout << z3.getOriginalValue() << std::endl;
+  // std::cout << z.getValue() << std::endl;
+  // std::cout << z.invert() << std::endl;
 
   std::vector<Z> coefficients1 = {Z(1), Z(2), Z(3)};
-  std::vector<Zmod> coefficients2 = {z1, z1, z1};
+  std::vector<Zmod<7>> coefficients2 = {z1, z1, z1};
 
-  Polynomial<Zmod> poly1(coefficients2);
-  Polynomial<Zmod> poly2(coefficients2);
+  Polynomial<Zmod<7>> poly1(coefficients2);
+  Polynomial<Zmod<7>> poly2(coefficients2);
 
-  // Polynomial<Z> poly3 = poly1 + poly2;
-  //
-  // poly3.printAsSequence();
-  //
-  // poly3 = poly1 * poly2;
-  //
-  // poly3.printAsFunction();
-  // poly3.printAsSequence();
-  Polynomial<Zmod> test = poly1 / poly2;
-  test.printAsFunction();
+  auto [q, r] = poly1 / poly2;
+  q.printAsFunction();
+  r.printAsSequence();
   return 0;
 }
