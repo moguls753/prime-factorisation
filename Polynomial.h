@@ -134,6 +134,10 @@ Polynomial<R> Polynomial<R>::operator*(const Polynomial<R> &other) const {
 template <typename R>
 std::pair<Polynomial<R>, Polynomial<R>>
 Polynomial<R>::operator/(const Polynomial<R> &other) const {
+  if (other.degree() > degree()) {
+    throw std::invalid_argument("Der Grad des Divisors darf nicht grösser sein "
+                                "als der des Dividenten!");
+  }
   if (!other.leadingCoefficient().isUnit()) {
     throw std::invalid_argument(
         "Der Leitkoeffizient des Divisors ist keine Einheit in " +
