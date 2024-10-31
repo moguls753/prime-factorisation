@@ -10,6 +10,8 @@
 template <typename R> class Polynomial {
 private:
   std::vector<R> coefficients;
+  std::vector<Polynomial<R>> buildSubproductTree(const std::vector<R> &points);
+  std::vector<R> goingDownTheTree(const std::vector<Polynomial<R>> &tree);
 
 public:
   Polynomial(const std::vector<R> &coefficients);
@@ -19,8 +21,12 @@ public:
   Polynomial<R> operator+(const Polynomial<R> &other) const;
   Polynomial<R> operator-() const;
   Polynomial<R> operator*(const Polynomial<R> &other) const;
+
   std::pair<Polynomial<R>, Polynomial<R>>
   operator/(const Polynomial<R> &other) const;
+
+  std::vector<R> evalAt(const std::vector<R> &points);
+
   void printAsSequence() const;
   void printAsFunction() const;
 };
@@ -158,4 +164,23 @@ Polynomial<R>::operator/(const Polynomial<R> &other) const {
   Polynomial<R> result = Polynomial(q);
   return std::make_pair(result, r);
 }
+
+// Methoden für die "fast evaluation"(Algorithmus 10.7)
+template <typename R>
+std::vector<Polynomial<R>>
+Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
+  return points;
+}
+
+template <typename R>
+std::vector<R>
+Polynomial<R>::goingDownTheTree(const std::vector<Polynomial<R>> &tree) {
+  return tree[0].getCoefficients();
+}
+
+template <typename R>
+std::vector<R> Polynomial<R>::evalAt(const std::vector<R> &points) {
+  return points;
+}
+
 #endif
