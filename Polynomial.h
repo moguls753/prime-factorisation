@@ -3,6 +3,7 @@
 
 #include "Z.h"
 #include "Zmod.h"
+#include <cmath>
 #include <iostream>
 #include <ostream>
 #include <vector>
@@ -11,7 +12,9 @@ template <typename R> class Polynomial {
 private:
   std::vector<R> coefficients;
   std::vector<Polynomial<R>> buildSubproductTree(const std::vector<R> &points);
-  std::vector<R> goingDownTheTree(const std::vector<Polynomial<R>> &tree);
+  std::vector<R> goingDownTheTree(const Polynomial<R> &f,
+                                  const std::vector<R> &points,
+                                  const std::vector<Polynomial<R>> &tree);
 
 public:
   Polynomial(const std::vector<R> &coefficients);
@@ -169,17 +172,60 @@ Polynomial<R>::operator/(const Polynomial<R> &other) const {
 template <typename R>
 std::vector<Polynomial<R>>
 Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
-  return points;
+
+  // zuerst werden die Blätter gesetzt
+  std::vector<Polynomial<R>> tree;
+  for (int i = 0; i < points.size(); i++) {
+    tree.insert(tree.begin() + i, Polynomial<R>({-points[i], R(1)}));
+  }
+
+  // dann die Ebenen bis zur Wurzel, aber von rechts nach links. Also in
+  // umgekehrter Reihenfolge zu 10.7!
+  // die Tiefe des Baumes k ist durch log2(sizeof points) bestimmt.
+  int k = std::log2(points.size());
+
+  // offset für jede Ebene
+  int levelOffset = 0;
+  int width;
+  for (int i = 1; i <= k; i++) {
+    // std::cout << "Ebene " << i;
+    // Breite auf dieser Ebene: 2^(k-i)
+    // bit shifting für 2er Potenzen
+    width = (1 << (k - i));
+    for (int j = 0; j <= width - 1; j++) {
+      // Die bereits berechneten Polynome aus dem Baum bestimmen:
+      //  - begin() ist ein reverse Iterator, begin() + 1 zeigt auf das
+      //    zweite element und muss noch dereferenziert werden (*)
+      //  - da das Array eindimensional ist, beginnt die zweite Ebene des Baumes
+      //    an der Stelle tree.begin() + levelOffset
+
+      Polynomial<R> M1 = *(tree.begin() + (2 * j) + levelOffset);
+      Polynomial<R> M2 = *(tree.begin() + (2 * j + 1) + levelOffset);
+      Polynomial<R> M = M1 * M2;
+      M.printAsSequence();
+      tree.push_back(M);
+    }
+    levelOffset += 2 * width;
+  }
+
+  return tree;
 }
 
 template <typename R>
 std::vector<R>
-Polynomial<R>::goingDownTheTree(const std::vector<Polynomial<R>> &tree) {
+Polynomial<R>::goingDownTheTree(const Polynomial<R> &f,
+                                const std::vector<R> &points,
+                                const std::vector<Polynomial<R>> &tree) {
+  if (f.degree() == R(0))
+    return f;
+  auto [q,r0]] = f / tree;
+  auto [q,r0]] = f / tree;
   return tree[0].getCoefficients();
 }
 
 template <typename R>
 std::vector<R> Polynomial<R>::evalAt(const std::vector<R> &points) {
+  this->buildSubproductTree(points);
   return points;
 }
 

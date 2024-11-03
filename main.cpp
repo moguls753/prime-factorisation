@@ -28,38 +28,22 @@ int main() {
   auto [quotient_mod7, remainder_mod7] = poly1 / poly2;
 
   // Ausgabe der Resultate für Zmod<7>
-  std::cout << "Quotient (Zmod<7>): ";
-  quotient_mod7.printAsFunction();
-
-  std::cout << "Rest (Zmod<7>): ";
-  remainder_mod7.printAsFunction();
+  // std::cout << "Quotient (Zmod<7>): ";
+  // quotient_mod7.printAsFunction();
+  //
+  // std::cout << "Rest (Zmod<7>): ";
+  // remainder_mod7.printAsFunction();
 
   // 2. Beispiel: Z mit großen Zahlen
 
   // Große Koeffizienten für Z
-  Z z1_big(mpz_class("9876543243214321432143214321432110123456789"));
-  Z z2_big(mpz_class(
-      "999999999999994372184673829015679320167589302674589032618490326178506328"
-      "190576832901567839201658392016578903261578903219999483290145783920174893"
-      "021748903271849037281904732890147839021748930217849032781904378291047839"
-      "021748903271849037281904732890147839021748930217849032781904378291047839"
-      "021748903271849037281904732890147839021748930217849032781904378291047839"
-      "021748903271849037281904732890147839021748930217849032781904378291047839"
-      "021748903271849037281904732890147839021748930217849032781904378291047839"
-      "021748903271849037281904732890147839021748930217849032781904378291047839"
-      "021748903271849037281904732890147839021748930217849032781904378291047839"
-      "021748903271849037281904732890147839021748930217849032781904378291047839"
-      "201748930271489032178940372819047382901478392017489302178490327184903728"
-      "190473829104783920174893021748903278191905768329015678392016583920165789"
-      "032615789032199994832901457839201748930217489032718490372819047328901478"
-      "390217489302178490327819043782910478392017489302714890321789403728190473"
-      "829014783920174893021784903271849037281904738291047839201748930217489032"
-      "7819"));
+  Z z1_big(mpz_class("2"));
+  Z z2_big(mpz_class("3"));
   Z z3_big(mpz_class("555555555555543214321432143214321432143214321432143210057"
                      "4839105768329016555555"));
 
-  std::vector<Z> coefficients_z1 = {z3_big, z2_big,
-                                    z1_big}; // p_3(x) = z1*x^2 + z2*x + z3
+  std::vector<Z> coefficients_z1 = {z1_big, z1_big, z1_big, z1_big,
+                                    z2_big, z2_big, z2_big, z2_big};
   std::vector<Z> coefficients_z2 = {Z(mpz_class("1")),
                                     Z(mpz_class("1"))}; // p_4(x) = x + 1
 
@@ -71,11 +55,11 @@ int main() {
   auto [quotient_z, remainder_z] = poly_z1 / poly_z2;
 
   // Ausgabe der Resultate für Z
-  std::cout << "Quotient (Z): ";
-  quotient_z.printAsFunction();
-
-  std::cout << "Rest (Z): ";
-  remainder_z.printAsFunction();
-
+  // std::cout << "Quotient (Z): ";
+  // quotient_z.printAsFunction();
+  //
+  // std::cout << "Rest (Z): ";
+  // remainder_z.printAsFunction();
+  poly_z1.evalAt(coefficients_z1);
   return 0;
 }
