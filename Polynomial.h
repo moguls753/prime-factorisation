@@ -169,6 +169,7 @@ Polynomial<R>::operator/(const Polynomial<R> &other) const {
 }
 
 // Methoden für die "fast evaluation"(Algorithmus 10.7)
+// TODO: Brauche ich die Wurzel überhaupt???
 template <typename R>
 std::vector<Polynomial<R>>
 Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
@@ -218,14 +219,33 @@ Polynomial<R>::goingDownTheTree(const Polynomial<R> &f,
                                 const std::vector<Polynomial<R>> &tree) {
   if (f.degree() == R(0))
     return f;
-  auto [q,r0]] = f / tree;
-  auto [q,r0]] = f / tree;
-  return tree[0].getCoefficients();
+
+  auto [q0, r0] = f / tree[tree.size() - 2];
+  auto [q1, r1] = f / tree[tree.size() - 1];
+  // NOTE: es fehlen hier odch ncoh die Breite und der index
+  tree.pop_back();
+  tree.pop_back();
+
+  // Zur Erinnerung: points.size() ist immer eine 2er Potenz, also ohne Rest
+  // durch 2 teilbar
+  std::vector<R> leftPoints =
+      std::vector<R>(points.begin(), points.begin() + (points.size() / 2) - 1);
+  std::vector<R> rightPoints =
+      std::vector<R>(points.begin() + (points.size() / 2), points.end());
+
+  // NOTE: es fehlen hier odch ncoh die Breite und der index, die rekursion geht
+  // in die tiefe nicht in die breite wie das Array
+  std::vector<R> leftResult = goingDownTheTree(r0, leftPoints, tree);
+  std::vector<R> rightResult = goingDownTheTree(r0, rightPoints, tree);
+  return;
 }
 
 template <typename R>
 std::vector<R> Polynomial<R>::evalAt(const std::vector<R> &points) {
-  this->buildSubproductTree(points);
+  std::vector<R> tree = this->buildSubproductTree(points);
+  // TODO: pop_back muss nciht sein wenn wurzel fehlt
+  std::vector<R> results =
+      this->goingDownTheTree(this, points, tree.pop_back());
   return points;
 }
 
