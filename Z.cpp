@@ -13,6 +13,8 @@ Z Z::abs() const { return Z(::abs(value)); }
 
 bool Z::operator!=(const Z &other) const { return (value != other.getValue()); }
 
+bool Z::operator==(const Z &other) const { return (value == other.getValue()); }
+
 bool Z::operator<(const Z &other) const { return (value < other.getValue()); }
 
 bool Z::operator>(const Z &other) const { return (value > other.getValue()); }

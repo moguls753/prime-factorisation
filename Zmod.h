@@ -16,6 +16,7 @@ public:
   Zmod<Modulus> operator*(const Zmod<Modulus> &other) const override;
   Zmod<Modulus> abs() const override;
   bool operator!=(const Zmod<Modulus> &other) const override;
+  bool operator==(const Zmod<Modulus> &other) const override;
   bool operator<(const Zmod<Modulus> &other) const override;
   bool operator>(const Zmod<Modulus> &other) const override;
   void print(std::ostream &os) const override;
@@ -56,6 +57,11 @@ template <int Modulus> Zmod<Modulus> Zmod<Modulus>::abs() const {
 template <int Modulus>
 bool Zmod<Modulus>::operator!=(const Zmod<Modulus> &other) const {
   return (this->value != other.value);
+}
+
+template <int Modulus>
+bool Zmod<Modulus>::operator==(const Zmod<Modulus> &other) const {
+  return (this->value == other.value);
 }
 
 template <int Modulus>

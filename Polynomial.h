@@ -13,8 +13,9 @@ private:
   std::vector<R> coefficients;
   std::vector<Polynomial<R>> buildSubproductTree(const std::vector<R> &points);
   std::vector<R> goingDownTheTree(const Polynomial<R> &f,
-                                  const std::vector<R> &points,
-                                  const std::vector<Polynomial<R>> &tree);
+                                  const std::vector<Polynomial<R>> &tree,
+                                  const int leftIndex, const int level,
+                                  const int offset);
 
 public:
   Polynomial(const std::vector<R> &coefficients);
@@ -24,7 +25,6 @@ public:
   Polynomial<R> operator+(const Polynomial<R> &other) const;
   Polynomial<R> operator-() const;
   Polynomial<R> operator*(const Polynomial<R> &other) const;
-
   std::pair<Polynomial<R>, Polynomial<R>>
   operator/(const Polynomial<R> &other) const;
 
@@ -32,6 +32,7 @@ public:
 
   void printAsSequence() const;
   void printAsFunction() const;
+  void trim();
 };
 
 // Implementierung hier, da Template-Klasse
@@ -47,6 +48,7 @@ template <typename R> int Polynomial<R>::degree() const {
   }
   // mathematisch gesehen hat das Nullpolynom den Grad -1, hier aber 0 aus
   // technischen Gründen: (coefficients[-1] ist nicht definiert in C++)
+  // mit 0 spart man sich die Sonderfälle des Nullpolynoms
   return 0;
 }
 
@@ -158,13 +160,19 @@ Polynomial<R>::operator/(const Polynomial<R> &other) const {
   for (int i = degree() - other.degree(); i >= 0; i--) {
     if (r.degree() == other.degree() + i) {
       q[i] = r.leadingCoefficient() * u;
-      Polynomial<R> monom = Polynomial({q[i]});
+
+      // Grad des Monoms muss passen
+      std::vector<R> q_vector(r.degree() - other.degree());
+      q_vector.push_back(q[i]);
+      Polynomial<R> monom = Polynomial(q_vector);
+
       r = r + (-(monom * other));
     } else {
       q[i] = R(0);
     }
   }
   Polynomial<R> result = Polynomial(q);
+  r.trim();
   return std::make_pair(result, r);
 }
 
@@ -195,7 +203,7 @@ Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
     width = (1 << (k - i));
     for (int j = 0; j <= width - 1; j++) {
       // Die bereits berechneten Polynome aus dem Baum bestimmen:
-      //  - begin() ist ein reverse Iterator, begin() + 1 zeigt auf das
+      //  - begin() ist ein Iterator, begin() + 1 zeigt auf das
       //    zweite element und muss noch dereferenziert werden (*)
       //  - da das Array eindimensional ist, beginnt die zweite Ebene des Baumes
       //    an der Stelle tree.begin() + levelOffset
@@ -203,7 +211,6 @@ Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
       Polynomial<R> M1 = *(tree.begin() + (2 * j) + levelOffset);
       Polynomial<R> M2 = *(tree.begin() + (2 * j + 1) + levelOffset);
       Polynomial<R> M = M1 * M2;
-      M.printAsSequence();
       tree.push_back(M);
     }
     levelOffset += 2 * width;
@@ -213,40 +220,52 @@ Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
 }
 
 template <typename R>
-std::vector<R>
-Polynomial<R>::goingDownTheTree(const Polynomial<R> &f,
-                                const std::vector<R> &points,
-                                const std::vector<Polynomial<R>> &tree) {
-  if (f.degree() == R(0))
-    return f;
+std::vector<R> Polynomial<R>::goingDownTheTree(
+    const Polynomial<R> &f, const std::vector<Polynomial<R>> &tree,
+    const int leftIndex, const int level, const int offset) {
 
-  auto [q0, r0] = f / tree[tree.size() - 2];
-  auto [q1, r1] = f / tree[tree.size() - 1];
-  // NOTE: es fehlen hier odch ncoh die Breite und der index
-  tree.pop_back();
-  tree.pop_back();
+  if (f.degree() == 0) {
+    std::cout << "\nf.size() = " << f.getCoefficients().size();
+    return f.getCoefficients();
+  }
 
-  // Zur Erinnerung: points.size() ist immer eine 2er Potenz, also ohne Rest
-  // durch 2 teilbar
-  std::vector<R> leftPoints =
-      std::vector<R>(points.begin(), points.begin() + (points.size() / 2) - 1);
-  std::vector<R> rightPoints =
-      std::vector<R>(points.begin() + (points.size() / 2), points.end());
+  auto [q0, r0] = f / tree[leftIndex];
+  auto [q1, r1] = f / tree[leftIndex + 1];
 
-  // NOTE: es fehlen hier odch ncoh die Breite und der index, die rekursion geht
-  // in die tiefe nicht in die breite wie das Array
-  std::vector<R> leftResult = goingDownTheTree(r0, leftPoints, tree);
-  std::vector<R> rightResult = goingDownTheTree(r0, rightPoints, tree);
-  return;
+  // r0.printAsSequence();
+
+  // newIndex ist der Index des neuen linken Subproduktpolynoms
+  int levelOffset = (1 << (level + 1));
+  int newIndex = leftIndex - levelOffset + offset;
+
+  // Rekursion
+  std::vector<R> leftResult =
+      goingDownTheTree(r0, tree, newIndex, level + 1, offset);
+  std::vector<R> rightResult =
+      goingDownTheTree(r0, tree, newIndex + 2, level + 1, offset + 1);
+
+  // merging, mit move Iterator effizienter da nciht kopiert wird.
+  leftResult.insert(leftResult.end(),
+                    std::make_move_iterator(rightResult.begin()),
+                    std::make_move_iterator(rightResult.end()));
+  return leftResult;
 }
 
 template <typename R>
 std::vector<R> Polynomial<R>::evalAt(const std::vector<R> &points) {
-  std::vector<R> tree = this->buildSubproductTree(points);
-  // TODO: pop_back muss nciht sein wenn wurzel fehlt
+  std::vector<Polynomial<R>> tree = this->buildSubproductTree(points);
+  // for (int i = 0; i < tree.size(); i++) {
+  //   tree[i].printAsSequence();
+  // }
   std::vector<R> results =
-      this->goingDownTheTree(this, points, tree.pop_back());
-  return points;
+      this->goingDownTheTree(*this, tree, tree.size() - 3, 1, 0);
+  return results;
+}
+
+template <typename R> void Polynomial<R>::trim() {
+  while (!coefficients.empty() && coefficients.back() == R(0)) {
+    coefficients.pop_back();
+  }
 }
 
 #endif

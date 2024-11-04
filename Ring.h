@@ -15,6 +15,7 @@ public:
   virtual T operator*(const T &other) const = 0;
   virtual T abs() const = 0;
   virtual bool operator!=(const T &other) const = 0;
+  virtual bool operator==(const T &other) const = 0;
   virtual bool operator<(const T &other) const = 0;
   virtual bool operator>(const T &other) const = 0;
   virtual void print(std::ostream &os) const = 0;
