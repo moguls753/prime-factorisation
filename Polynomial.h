@@ -15,7 +15,7 @@ private:
   std::vector<R> goingDownTheTree(const Polynomial<R> &f,
                                   const std::vector<Polynomial<R>> &tree,
                                   const int leftIndex, const int level,
-                                  const int offset);
+                                  const int widthOffset);
 
 public:
   Polynomial(const std::vector<R> &coefficients);
@@ -222,27 +222,23 @@ Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
 template <typename R>
 std::vector<R> Polynomial<R>::goingDownTheTree(
     const Polynomial<R> &f, const std::vector<Polynomial<R>> &tree,
-    const int leftIndex, const int level, const int offset) {
+    const int leftIndex, const int level, const int widthOffset) {
 
-  if (f.degree() == 0) {
-    std::cout << "\nf.size() = " << f.getCoefficients().size();
+  if (f.degree() == 0)
     return f.getCoefficients();
-  }
 
   auto [q0, r0] = f / tree[leftIndex];
   auto [q1, r1] = f / tree[leftIndex + 1];
 
-  // r0.printAsSequence();
-
   // newIndex ist der Index des neuen linken Subproduktpolynoms
   int levelOffset = (1 << (level + 1));
-  int newIndex = leftIndex - levelOffset + offset;
+  int newIndex = leftIndex - levelOffset + widthOffset;
 
   // Rekursion
   std::vector<R> leftResult =
-      goingDownTheTree(r0, tree, newIndex, level + 1, offset);
+      goingDownTheTree(r0, tree, newIndex, level + 1, 2 * widthOffset);
   std::vector<R> rightResult =
-      goingDownTheTree(r0, tree, newIndex + 2, level + 1, offset + 1);
+      goingDownTheTree(r1, tree, newIndex + 2, level + 1, 2 * widthOffset + 2);
 
   // merging, mit move Iterator effizienter da nciht kopiert wird.
   leftResult.insert(leftResult.end(),
