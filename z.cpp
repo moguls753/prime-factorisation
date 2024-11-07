@@ -11,6 +11,10 @@ Z Z::operator*(const Z &other) const { return Z(value * other.getValue()); }
 
 Z Z::abs() const { return Z(::abs(value)); }
 
+Z Z::one() const { return Z(1); }
+
+Z Z::zero() const { return Z(0); }
+
 bool Z::operator!=(const Z &other) const { return (value != other.getValue()); }
 
 bool Z::operator==(const Z &other) const { return (value == other.getValue()); }
@@ -22,6 +26,8 @@ bool Z::operator>(const Z &other) const { return (value > other.getValue()); }
 void Z::print(std::ostream &os) const { os << value; }
 
 bool Z::isUnit() const { return (value == -1 || value == 1); }
+
+bool Z::isZero() const { return (value == 0); }
 
 Z Z::invert() const {
   if (value == 1 || value == -1) {

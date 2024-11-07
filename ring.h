@@ -14,6 +14,8 @@ public:
   virtual T operator-() const = 0;
   virtual T operator*(const T &other) const = 0;
   virtual T abs() const = 0;
+  virtual T one() const = 0;
+  virtual T zero() const = 0;
   virtual bool operator!=(const T &other) const = 0;
   virtual bool operator==(const T &other) const = 0;
   virtual bool operator<(const T &other) const = 0;
@@ -24,6 +26,7 @@ public:
     return os;
   }
   virtual bool isUnit() const = 0;
+  virtual bool isZero() const = 0;
   virtual T invert() const = 0;
 };
 

@@ -1,14 +1,17 @@
 #ifndef POLYNOMIAL_H
 #define POLYNOMIAL_H
 
-#include "z.h"
-#include "z_mod.h"
+#include "ring.h"
 #include <cmath>
+#include <concepts>
 #include <iostream>
 #include <ostream>
 #include <vector>
 
-template <typename R> class Polynomial {
+template <typename R>
+concept IsRing = std::derived_from<R, Ring<R>>;
+
+template <IsRing R> class Polynomial {
 private:
   std::vector<R> coefficients;
   std::vector<R> goingDownTheTree(const Polynomial<R> &f,
@@ -37,13 +40,13 @@ public:
 
 // Implementierung hier, da Template-Klasse
 // Konstruktor
-template <typename R>
+template <IsRing R>
 Polynomial<R>::Polynomial(const std::vector<R> &coefficients)
     : coefficients(coefficients) {}
 
-template <typename R> int Polynomial<R>::degree() const {
+template <IsRing R> int Polynomial<R>::degree() const {
   for (int i = coefficients.size() - 1; i >= 0; i--) {
-    if (coefficients[i] != R(0))
+    if (!coefficients[i].isZero())
       return i;
   }
   // mathematisch gesehen hat das Nullpolynom den Grad -1, hier aber 0 aus
@@ -52,15 +55,24 @@ template <typename R> int Polynomial<R>::degree() const {
   return 0;
 }
 
-template <typename R> std::vector<R> Polynomial<R>::getCoefficients() const {
+template <IsRing R> std::vector<R> Polynomial<R>::getCoefficients() const {
   return coefficients;
 }
 
-template <typename R> R Polynomial<R>::leadingCoefficient() const {
+template <IsRing R> R Polynomial<R>::leadingCoefficient() const {
+  if (coefficients.empty()) {
+    throw std::runtime_error(
+        "Cannot get leading coefficient of an empty polynomial");
+  }
   return coefficients[degree()];
 }
 
-template <typename R> void Polynomial<R>::printAsSequence() const {
+template <IsRing R> void Polynomial<R>::printAsSequence() const {
+  if (coefficients.empty()) {
+    std::cout << "()" << std::endl;
+    return;
+  }
+
   std::cout << "(";
   for (int i = 0; i < coefficients.size() - 1; i++) {
     std::cout << coefficients[i] << ", ";
@@ -69,21 +81,25 @@ template <typename R> void Polynomial<R>::printAsSequence() const {
   std::cout << ")" << std::endl;
 }
 
-template <typename R> void Polynomial<R>::printAsFunction() const {
+template <IsRing R> void Polynomial<R>::printAsFunction() const {
+  if (coefficients.empty()) {
+    std::cout << "0" << std::endl;
+    return;
+  }
   for (int i = degree(); i >= 0; i--) {
-    if (coefficients[i] != R(0)) {
+    if (!coefficients[i].isZero()) {
       // Vorzeichen für höchsten Grad setzen?
       if (i == degree()) {
-        if (coefficients[i] < R(0)) {
+        if (coefficients[i] < coefficients[i].zero()) {
           std::cout << "-";
         }
       } else {
-        std::cout << (coefficients[i] < R(0) ? " - " : " + ");
+        std::cout << (coefficients[i] < coefficients[i].zero() ? " - " : " + ");
       }
 
       // Koeffizienten nur anzeigen, wenn sie nicht 1 oder -1 sind oder bei
       // Konstante (i == 0)
-      if (coefficients[i].abs() != R(1) || i == 0) {
+      if (coefficients[i].abs() != coefficients[i].one() || i == 0) {
         std::cout << coefficients[i].abs();
       }
 
@@ -99,7 +115,7 @@ template <typename R> void Polynomial<R>::printAsFunction() const {
 }
 
 // Operationen auf Polynomen mit Koeffizienten aus dem Ring R
-template <typename R>
+template <IsRing R>
 Polynomial<R> Polynomial<R>::operator+(const Polynomial<R> &other) const {
   // dim(a+b) = max(dim(a), dim(b))
   int maxSize = std::max(coefficients.size(), other.coefficients.size());
@@ -107,14 +123,16 @@ Polynomial<R> Polynomial<R>::operator+(const Polynomial<R> &other) const {
 
   // "kürzeres" Polynom mit Nullen auffüllen, dann komponentenweise addieren
   for (int i = 0; i < maxSize; i++) {
-    R coeff1 = (i < coefficients.size()) ? coefficients[i] : R(0);
-    R coeff2 = (i < other.coefficients.size()) ? other.coefficients[i] : R(0);
+    R coeff1 =
+        (i < coefficients.size()) ? coefficients[i] : coefficients[i].zero();
+    R coeff2 = (i < other.coefficients.size()) ? other.coefficients[i]
+                                               : coefficients[i].zero();
     resultCoefficients[i] = coeff1 + coeff2;
   }
   return Polynomial(resultCoefficients);
 }
 
-template <typename R> Polynomial<R> Polynomial<R>::operator-() const {
+template <IsRing R> Polynomial<R> Polynomial<R>::operator-() const {
   std::vector<R> negativeCoefficients(coefficients.size());
 
   for (int i = 0; i < negativeCoefficients.size(); i++) {
@@ -124,25 +142,34 @@ template <typename R> Polynomial<R> Polynomial<R>::operator-() const {
   return Polynomial(negativeCoefficients);
 }
 
-template <typename R>
+template <IsRing R>
 Polynomial<R> Polynomial<R>::operator*(const Polynomial<R> &other) const {
+  if (coefficients.empty() || other.coefficients.empty()) {
+    throw std::runtime_error(
+        "Cannot multiply polynomials with no coefficients");
+  }
+
   // dim(a*b) = dim(a) + dim(b) = resultCoefficients.size() - 1
-  std::vector<R> resultCoefficients((degree() + other.degree()) + 1);
+  std::vector<R> resultCoefficients;
+  resultCoefficients.reserve((degree() + other.degree()) + 1);
 
   // Faltung der Koeffizienten, also Distributivgesetz aka Ausmultiplizieren
-  for (int k = 0; k < resultCoefficients.size(); k++) {
+  for (int k = 0; k <= (degree() + other.degree()); k++) {
+    R sum = coefficients[0].zero();
     for (int i = 0; i <= k; i++) {
       // sicherstellen, dass hinter den Grenzen mit 0 multipliziert wird
-      R c1 = (i < coefficients.size()) ? coefficients[i] : R(0);
+      R c1 =
+          (i < coefficients.size()) ? coefficients[i] : coefficients[0].zero();
       R c2 = ((k - i) < other.coefficients.size()) ? other.coefficients[k - i]
-                                                   : R(0);
-      resultCoefficients[k] = resultCoefficients[k] + c1 * c2;
+                                                   : coefficients[0].zero();
+      sum = sum + c1 * c2;
     }
+    resultCoefficients.push_back(sum);
   }
   return Polynomial<R>(resultCoefficients);
 }
 
-template <typename R>
+template <IsRing R>
 std::pair<Polynomial<R>, Polynomial<R>>
 Polynomial<R>::operator/(const Polynomial<R> &other) const {
   if (other.degree() > degree()) {
@@ -156,19 +183,21 @@ Polynomial<R>::operator/(const Polynomial<R> &other) const {
   }
   Polynomial<R> r = *this;
   R u = other.leadingCoefficient().invert();
-  std::vector<R> q(degree() - other.degree() + 1);
+  std::vector<R> q(degree() - other.degree() + 1,
+                   other.leadingCoefficient().zero());
   for (int i = degree() - other.degree(); i >= 0; i--) {
     if (r.degree() == other.degree() + i) {
       q[i] = r.leadingCoefficient() * u;
 
       // Grad des Monoms muss passen
-      std::vector<R> q_vector(r.degree() - other.degree());
+      std::vector<R> q_vector(r.degree() - other.degree(),
+                              other.leadingCoefficient().zero());
       q_vector.push_back(q[i]);
       Polynomial<R> monom = Polynomial(q_vector);
 
       r = r + (-(monom * other));
     } else {
-      q[i] = R(0);
+      q[i] = other.leadingCoefficient().zero();
     }
   }
   Polynomial<R> result = Polynomial(q);
@@ -180,14 +209,14 @@ Polynomial<R>::operator/(const Polynomial<R> &other) const {
 // TODO: Brauche ich die Wurzel überhaupt???
 // NOTE: eigentlich hängt diese methode nicht von this ab, es könnte eine
 // "freie" sein.
-template <typename R>
+template <IsRing R>
 std::vector<Polynomial<R>>
 Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
 
   // zuerst werden die Blätter gesetzt
   std::vector<Polynomial<R>> tree;
   for (int i = 0; i < points.size(); i++) {
-    tree.insert(tree.begin() + i, Polynomial<R>({-points[i], R(1)}));
+    tree.insert(tree.begin() + i, Polynomial<R>({-points[i], points[i].one()}));
   }
 
   // dann die Ebenen bis zur Wurzel, aber von rechts nach links. Also in
@@ -221,7 +250,7 @@ Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
   return tree;
 }
 
-template <typename R>
+template <IsRing R>
 std::vector<R> Polynomial<R>::goingDownTheTree(
     const Polynomial<R> &f, const std::vector<Polynomial<R>> &tree,
     const int leftIndex, const int level, const int widthOffset) {
@@ -249,7 +278,7 @@ std::vector<R> Polynomial<R>::goingDownTheTree(
   return leftResult;
 }
 
-template <typename R>
+template <IsRing R>
 std::vector<R> Polynomial<R>::evalAt(const std::vector<R> &points) {
   std::vector<Polynomial<R>> tree = this->buildSubproductTree(points);
   // for (int i = 0; i < tree.size(); i++) {
@@ -260,8 +289,8 @@ std::vector<R> Polynomial<R>::evalAt(const std::vector<R> &points) {
   return results;
 }
 
-template <typename R> void Polynomial<R>::trim() {
-  while (!coefficients.empty() && coefficients.back() == R(0)) {
+template <IsRing R> void Polynomial<R>::trim() {
+  while (!coefficients.empty() && coefficients.back().isZero()) {
     coefficients.pop_back();
   }
 }
