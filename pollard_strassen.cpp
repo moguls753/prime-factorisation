@@ -7,8 +7,15 @@ mpz_class pollardStrassen(const mpz_class N, mpz_class b) {
   // Laut Paper wird die wirkliche Wurzel aufgerundet, also wird c erst später
   // c+1 zugewiesen als hier.
   c = (remainder == 0) ? (c + 1) : c;
-  std::vector<Zmod<N.get_mpz_t()>> points;
-  for (int j = 1; j <= c; j++) {
+  std::vector<Zmod> points;
+  for (Zmod j = Zmod(1, N); j.getValue() <= c; j + j) {
+    points.push_back(j);
+  }
+  Polynomial<Zmod> poly(points);
+  std::vector<Polynomial<Zmod>> tree = poly.buildSubproductTree(points);
+  for (const auto &i : tree) {
+    i.printAsSequence();
+    std::cout << "/n";
   }
   return 0;
 }

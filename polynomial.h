@@ -11,7 +11,6 @@
 template <typename R> class Polynomial {
 private:
   std::vector<R> coefficients;
-  std::vector<Polynomial<R>> buildSubproductTree(const std::vector<R> &points);
   std::vector<R> goingDownTheTree(const Polynomial<R> &f,
                                   const std::vector<Polynomial<R>> &tree,
                                   const int leftIndex, const int level,
@@ -33,6 +32,7 @@ public:
   void printAsSequence() const;
   void printAsFunction() const;
   void trim();
+  std::vector<Polynomial<R>> buildSubproductTree(const std::vector<R> &points);
 };
 
 // Implementierung hier, da Template-Klasse

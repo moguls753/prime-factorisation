@@ -30,12 +30,13 @@ int main() {
   // for (Z i : results) {
   //   std::cout << i.getValue() << ' ';
   // }
-  poly_z1.printAsFunction();
+  // poly_z1.printAsFunction();
   // std::vector<Z> test = poly_z1.evalAt(coefficients_z1);
   // for (Z i : test) {
   //   std::cout << i.getValue() << ' ';
   // }
-  mpz_class result = pollardStrassen(mpz_class("10"), mpz_class("0"));
+  mpz_class result = pollardStrassen(mpz_class("42143257839207583201785302"),
+                                     mpz_class("43214321"));
 
   return 0;
 }
