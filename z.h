@@ -1,7 +1,8 @@
 #ifndef Z_H
 #define Z_H
 
-#include "Ring.h"
+#include "ring.h"
+#include <gmpxx.h>
 
 class Z : public Ring<Z> {
 public:

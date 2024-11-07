@@ -1,8 +1,8 @@
 #ifndef POLYNOMIAL_H
 #define POLYNOMIAL_H
 
-#include "Z.h"
-#include "Zmod.h"
+#include "z.h"
+#include "z_mod.h"
 #include <cmath>
 #include <iostream>
 #include <ostream>
@@ -178,6 +178,8 @@ Polynomial<R>::operator/(const Polynomial<R> &other) const {
 
 // Methoden für die "fast evaluation"(Algorithmus 10.7)
 // TODO: Brauche ich die Wurzel überhaupt???
+// NOTE: eigentlich hängt diese methode nicht von this ab, es könnte eine
+// "freie" sein.
 template <typename R>
 std::vector<Polynomial<R>>
 Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {

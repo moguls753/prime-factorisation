@@ -1,4 +1,4 @@
-#include "Z.h"
+#include "z.h"
 #include <stdexcept>
 
 Z::Z(const mpz_class &value) : Ring(value) {}

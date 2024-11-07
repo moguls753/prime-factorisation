@@ -1,6 +1,7 @@
-#include "Polynomial.h"
-#include "Z.h"
-#include "Zmod.h"
+#include "pollard_strassen.h"
+#include "polynomial.h"
+#include "z.h"
+#include "z_mod.h"
 #include <gmpxx.h>
 #include <iostream>
 
@@ -34,5 +35,7 @@ int main() {
   // for (Z i : test) {
   //   std::cout << i.getValue() << ' ';
   // }
+  mpz_class result = pollardStrassen(mpz_class("10"), mpz_class("0"));
+
   return 0;
 }
