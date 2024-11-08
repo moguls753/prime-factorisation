@@ -4,6 +4,7 @@
 #include "ring.h"
 #include <cmath>
 #include <concepts>
+#include <cstddef>
 #include <iostream>
 #include <ostream>
 #include <vector>
@@ -173,6 +174,10 @@ template <IsRing R>
 std::pair<Polynomial<R>, Polynomial<R>>
 Polynomial<R>::operator/(const Polynomial<R> &other) const {
   if (other.degree() > degree()) {
+    std::cout << "other: " << other.degree();
+    other.printAsSequence();
+    std::cout << "this: " << degree();
+    printAsSequence();
     throw std::invalid_argument("Der Grad des Divisors darf nicht grösser sein "
                                 "als der des Dividenten!");
   }
@@ -280,12 +285,22 @@ std::vector<R> Polynomial<R>::goingDownTheTree(
 
 template <IsRing R>
 std::vector<R> Polynomial<R>::evalAt(const std::vector<R> &points) {
-  std::vector<Polynomial<R>> tree = this->buildSubproductTree(points);
-  // for (int i = 0; i < tree.size(); i++) {
-  //   tree[i].printAsSequence();
-  // }
+  std::vector<R> trimmedPoints = points;
+  bool pointsTrimmed = false;
+  // points.size() muss eine Zweierpotenz sein!
+  // Also wird mit 1 erweitert.
+  if (std::bit_ceil(trimmedPoints.size()) != trimmedPoints.size()) {
+    pointsTrimmed = true;
+    trimmedPoints.resize(std::bit_ceil(trimmedPoints.size()),
+                         trimmedPoints[0].one());
+  }
+
+  std::vector<Polynomial<R>> tree = this->buildSubproductTree(trimmedPoints);
   std::vector<R> results =
       this->goingDownTheTree(*this, tree, tree.size() - 3, 1, 0);
+
+  if (pointsTrimmed)
+    results.resize(points.size());
   return results;
 }
 

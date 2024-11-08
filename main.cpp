@@ -36,7 +36,7 @@ int main() {
   //   std::cout << i.getValue() << ' ';
   // }
   mpz_class result =
-      pollardStrassen(mpz_class("424321432"), mpz_class("104321"));
+      pollardStrassen(mpz_class("32412432143214321432"), mpz_class("4313"));
 
   return 0;
 }

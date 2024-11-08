@@ -14,12 +14,13 @@ mpz_class pollardStrassen(const mpz_class N, mpz_class b) {
   }
   Polynomial<Zmod> poly(points);
   std::vector<Zmod> ic_points;
-  for (Zmod i = Zmod(0, N); i.getValue() < c; i = i + Zmod(1, N)) {
+  for (Zmod i = Zmod(0, N); i.getValue() <= c; i = i + Zmod(1, N)) {
     ic_points.push_back(i * Zmod(c, N));
   }
   std::vector<Zmod> result = poly.evalAt(ic_points);
+  std::cout << "FME: ";
   for (const auto &i : result) {
-    std::cout << i.getValue() << ", ";
+    std::cout << i.getValue() << " ";
   }
   return 0;
 }
