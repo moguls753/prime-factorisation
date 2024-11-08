@@ -2,6 +2,8 @@
 #include "z_mod.h"
 
 mpz_class pollardStrassen(const mpz_class N, mpz_class b) {
+
+  // Schritt 1 und 2
   mpz_class c;
   mpz_class remainder;
   mpz_sqrtrem(c.get_mpz_t(), remainder.get_mpz_t(), b.get_mpz_t());
@@ -18,9 +20,23 @@ mpz_class pollardStrassen(const mpz_class N, mpz_class b) {
     ic_points.push_back(i * Zmod(c, N));
   }
   std::vector<Zmod> result = poly.evalAt(ic_points);
-  std::cout << "FME: ";
   for (const auto &i : result) {
-    std::cout << i.getValue() << " ";
+    std::cout << i << ' ';
   }
-  return 0;
+  poly.printAsSequence();
+
+  // Schritt 3
+  int k = -1;
+  for (int i = 0; i < c; i++) {
+    if (gcd(result[i].getValue(), N) > 1) {
+      k = i;
+      break;
+    }
+  }
+
+  // keinen nicht trivialen Teiler gefunden
+  if (k == -1)
+    return mpz_class(0);
+
+  return mpz_class(result[k].getValue());
 }

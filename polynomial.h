@@ -37,6 +37,8 @@ public:
   void printAsFunction() const;
   void trim();
   std::vector<Polynomial<R>> buildSubproductTree(const std::vector<R> &points);
+  std::vector<Polynomial<R>>
+  buildPositiveSubproductTree(const std::vector<R> &points);
 };
 
 // Implementierung hier, da Template-Klasse
@@ -222,6 +224,47 @@ Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
   std::vector<Polynomial<R>> tree;
   for (int i = 0; i < points.size(); i++) {
     tree.insert(tree.begin() + i, Polynomial<R>({-points[i], points[i].one()}));
+  }
+
+  // dann die Ebenen bis zur Wurzel, aber von rechts nach links. Also in
+  // umgekehrter Reihenfolge zu 10.7!
+  // die Tiefe des Baumes k ist durch log2(sizeof points) bestimmt.
+  int k = std::log2(points.size());
+
+  // offset für jede Ebene
+  int levelOffset = 0;
+  int width;
+  for (int i = 1; i <= k; i++) {
+    // std::cout << "Ebene " << i;
+    // Breite auf dieser Ebene: 2^(k-i)
+    // bit shifting für 2er Potenzen
+    width = (1 << (k - i));
+    for (int j = 0; j <= width - 1; j++) {
+      // Die bereits berechneten Polynome aus dem Baum bestimmen:
+      //  - begin() ist ein Iterator, begin() + 1 zeigt auf das
+      //    zweite element und muss noch dereferenziert werden (*)
+      //  - da das Array eindimensional ist, beginnt die zweite Ebene des Baumes
+      //    an der Stelle tree.begin() + levelOffset
+
+      Polynomial<R> M1 = *(tree.begin() + (2 * j) + levelOffset);
+      Polynomial<R> M2 = *(tree.begin() + (2 * j + 1) + levelOffset);
+      Polynomial<R> M = M1 * M2;
+      tree.push_back(M);
+    }
+    levelOffset += 2 * width;
+  }
+
+  return tree;
+}
+
+template <IsRing R>
+std::vector<Polynomial<R>>
+Polynomial<R>::buildPolynomial(const std::vector<R> &points) {
+
+  // zuerst werden die Blätter gesetzt
+  std::vector<Polynomial<R>> tree;
+  for (int i = 0; i < points.size(); i++) {
+    tree.insert(tree.begin() + i, Polynomial<R>({points[i], points[i].one()}));
   }
 
   // dann die Ebenen bis zur Wurzel, aber von rechts nach links. Also in
