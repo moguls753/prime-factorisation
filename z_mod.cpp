@@ -15,7 +15,7 @@ Zmod Zmod::operator+(const Zmod &other) const {
   return Zmod(this->value + other.value, modulus);
 }
 
-Zmod Zmod::operator-() const { return Zmod(-this->value, modulus); }
+Zmod Zmod::operator-() const { return Zmod(modulus - this->value, modulus); }
 
 Zmod Zmod::operator*(const Zmod &other) const {
   if (modulus != other.modulus) {

@@ -1,13 +1,23 @@
-#include "pollard_strassen.h"
-#include "polynomial.h"
+/* Datei "probedivision.cpp" enthält ein Programm zur Faktorisierung von Zahlen
+mittels Probedivision Kompilieren: g++ probedivision.cpp testzahlen.cpp -lgmp
+-lgmpxx Ausführen mit Parameter: -F = Fermatzahl F_k -C = Cunninghamzahl
+(1111...111) -B = Testzahl b_k -R = RSA-Zahl R_k ohne Parameter: freie Eingabe
+einer Zahl.
+
+ (Beispielprogramm von Steffen Kionke für das Praktikum Algebra 2022)
+ */
+
 #include "testzahlen.h"
-#include "z.h"
-#include "z_mod.h"
 #include <chrono>
 #include <gmpxx.h>
 #include <iostream>
+#include <iterator>
 #include <list>
 
+/*
+ Klasse "Factor": Kann genutzt werden um einen (Prim)Faktor mit Exponenten zu
+ speichern.
+ */
 class Factor {
 public:
   unsigned int
@@ -134,59 +144,55 @@ std::list<Factor> trial_division_bounded(mpz_class N, mpz_class B) {
 std::list<Factor> trial_division(mpz_class N) {
   return trial_division_bounded(N, N);
 }
+/*
+ Main: Parameter
+    -F = Fermatzahlen
+    -C Cunninghamzahl
+    -B Testzahl b_k
+    -R RSA-Zahl R_k
+ */
+int main(int argc, char *argv[]) {
 
-int main() {
-  // Z z1_big(mpz_class("2"));
-  // Z z2_big(mpz_class("3"));
-  //
-  // std::vector<Z> coefficients_z1 = {
-  //     z1_big, z1_big, z1_big, z1_big, z1_big, z1_big, z1_big, z1_big,
-  //     z1_big, z1_big, z1_big, z1_big, z2_big, z2_big, z2_big, z2_big};
-  // std::vector<Z> coefficients_z2 = {Z(mpz_class("1")),
-  //                                   Z(mpz_class("1"))}; // p_4(x) = x + 1
-  //
-  // Polynomial<Z> poly_z1(coefficients_z1);
-  // Polynomial<Z> poly_z2(coefficients_z2);
-  // std::vector<Z> vector_a = {mpz_class(5), mpz_class(1), mpz_class(0),
-  //                            mpz_class(2), mpz_class(3)};
-  // std::vector<Z> vector_b = {mpz_class(3), mpz_class(2), mpz_class(1)};
-  // Polynomial<Z> a(vector_a);
-  // Polynomial<Z> b(vector_b);
-  // std::vector<Z> results = poly_z1.evalAt(std::vector<Z>(
-  //     {mpz_class("2"), mpz_class("2"), mpz_class("2"), mpz_class("2"),
-  //      mpz_class("2"), mpz_class("2"), mpz_class("2"), mpz_class("2"),
-  //      mpz_class("3"), mpz_class("3"), mpz_class("3"), mpz_class("3"),
-  //      mpz_class("3"), mpz_class("3"), mpz_class("3"), mpz_class("3")}));
-  // for (Z i : results) {
-  //   std::cout << i.getValue() << ' ';
-  // }
-  // poly_z1.printAsFunction();
-  // std::vector<Z> test = poly_z1.evalAt(coefficients_z1);
-  // for (Z i : test) {
-  //   std::cout << i.getValue() << ' ';
-  // }
+  int mode = 0; // 0 Eingabe, 1 Fermat, 2 Cunningham, 3 TestzahlB, 4 RSA-Zahl
+  std::string frage("Zahl k");
+  if (argc > 1) {
+    std::string arg1(argv[1]);
+    if (arg1 == "-F") {
+      mode = 1;
+      frage = "Fermat-Zahl F_k";
 
-  int k = 10;
-  mpz_class N = TestzahlB(k);
-  // Zeitmessung starten---------
-  std::chrono::time_point<std::chrono::high_resolution_clock> start =
-      std::chrono::high_resolution_clock::now();
+    } else if (arg1 == "-C") {
+      mode = 2;
+      frage = "Cunningham-Zahl C_k";
+    } else if (arg1 == "-B") {
+      mode = 3;
+      frage = "Testzahl B_k";
+    } else if (arg1 == "-R") {
+      mode = 4;
+      frage = "RSA-Zahl R_k";
+    }
+  }
 
-  std::vector<mpz_class> factors = primeFactorisation(N, mpz_class("9311"));
+  std::string str;
 
-  // Zeitmessung stoppen----------
-  std::chrono::time_point<std::chrono::high_resolution_clock> end =
-      std::chrono::high_resolution_clock::now();
+  std::cout << "Welche " << frage << " soll faktorisiert werden? \n";
 
-  // Vergangene Zeitspanne bestimmen und ausgeben
-  std::chrono::duration<double, std::milli> float_pollard_ms = end - start;
-  std::cout << "Berechnung in " << float_pollard_ms.count()
-            << " Millisekunden abgeschlossen" << std::endl;
+  std::cout << "Eingabe k:  ";
+  std::cin >> str;
+  mpz_class N("0");
 
-  std::cout << "Ermittelte Zerlegung von " << N << ":\n";
-
-  for (auto &i : factors) {
-    std::cout << i << " ";
+  // Hier werden die Testzahlen generiert.
+  // Die Funktionen dazu sind in testzahlen.h und testzahlen.cpp zu finden.
+  if (mode == 1) {
+    N = Fermat(std::stoi(str));
+  } else if (mode == 2) {
+    N = Cunningham(std::stoi(str));
+  } else if (mode == 3) {
+    N = TestzahlB(std::stoi(str));
+  } else if (mode == 4) {
+    N = RSAZahl(std::stoi(str));
+  } else {
+    N.set_str(str, 0);
   }
 
   // Schranke: Probedivision bis 10^8
@@ -194,24 +200,25 @@ int main() {
   mpz_class B("100000000");
 
   // Zeitmessung starten---------
-  start = std::chrono::high_resolution_clock::now();
+  std::chrono::time_point<std::chrono::high_resolution_clock> start =
+      std::chrono::high_resolution_clock::now();
 
   // Probedivision durchführen
-  std::list<Factor> factors2 = trial_division_bounded(N, B);
+  std::list<Factor> factors = trial_division_bounded(N, B);
 
   // Zeitmessung stoppen----------
-  end = std::chrono::high_resolution_clock::now();
+  std::chrono::time_point<std::chrono::high_resolution_clock> end =
+      std::chrono::high_resolution_clock::now();
   // Vergangene Zeitspanne bestimmen und ausgeben
-  std::chrono::duration<double, std::milli> float_probedivision_ms =
-      end - start;
-  std::cout << "Berechnung in " << float_probedivision_ms.count()
+  std::chrono::duration<double, std::milli> float_ms = end - start;
+  std::cout << "Berechnung in " << float_ms.count()
             << " Millisekunden abgeschlossen" << std::endl;
 
   std::cout << "Ermittelte Zerlegung von " << N << ":\n";
 
   std::list<Factor>::iterator it;
-  for (it = factors2.begin(); it != factors2.end(); it++)
+  for (it = factors.begin(); it != factors.end(); it++)
     it->printpp();
 
-  return 0;
+  return EXIT_SUCCESS;
 }

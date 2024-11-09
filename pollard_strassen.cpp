@@ -1,6 +1,7 @@
 #include "polynomial.h"
 #include "z_mod.h"
 
+// gibt 0 zurück wenn failure
 mpz_class pollardStrassen(const mpz_class N, mpz_class b) {
 
   // Schritt 1 und 2
@@ -14,16 +15,12 @@ mpz_class pollardStrassen(const mpz_class N, mpz_class b) {
   for (Zmod j = Zmod(1, N); j.getValue() <= c; j = j + Zmod(1, N)) {
     points.push_back(j);
   }
-  Polynomial<Zmod> poly(points);
+  Polynomial<Zmod> f = Polynomial<Zmod>::buildPolynomial(points);
   std::vector<Zmod> ic_points;
-  for (Zmod i = Zmod(0, N); i.getValue() <= c; i = i + Zmod(1, N)) {
+  for (Zmod i = Zmod(0, N); i.getValue() < c; i = i + Zmod(1, N)) {
     ic_points.push_back(i * Zmod(c, N));
   }
-  std::vector<Zmod> result = poly.evalAt(ic_points);
-  for (const auto &i : result) {
-    std::cout << i << ' ';
-  }
-  poly.printAsSequence();
+  std::vector<Zmod> result = f.evalAt(ic_points);
 
   // Schritt 3
   int k = -1;
@@ -38,5 +35,36 @@ mpz_class pollardStrassen(const mpz_class N, mpz_class b) {
   if (k == -1)
     return mpz_class(0);
 
-  return mpz_class(result[k].getValue());
+  mpz_class d = 0;
+  for (int i = 1; i <= c; i++) {
+    if (N % (k * c + i) == 0) {
+      d = k * c + i;
+      // std::cout << d << " ";
+      if (d > 1)
+        break;
+    }
+  }
+
+  return mpz_class(d);
+}
+
+std::vector<mpz_class> primeFactorisation(mpz_class N, mpz_class b) {
+  std::vector<mpz_class> factors;
+
+  while (N > 1) {
+    mpz_class factor = pollardStrassen(N, b);
+
+    if (factor == 0) {
+      // Ist N selbst prim?
+      factors.push_back(N);
+      break;
+    }
+
+    while (N % factor == 0) {
+      factors.push_back(factor);
+      N /= factor;
+    }
+  }
+
+  return factors;
 }

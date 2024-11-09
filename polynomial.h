@@ -15,10 +15,10 @@ concept IsRing = std::derived_from<R, Ring<R>>;
 template <IsRing R> class Polynomial {
 private:
   std::vector<R> coefficients;
-  std::vector<R> goingDownTheTree(const Polynomial<R> &f,
-                                  const std::vector<Polynomial<R>> &tree,
-                                  const int leftIndex, const int level,
-                                  const int widthOffset);
+  static std::vector<R> goingDownTheTree(const Polynomial<R> &f,
+                                         const std::vector<Polynomial<R>> &tree,
+                                         const int leftIndex, const int level,
+                                         const int widthOffset);
 
 public:
   Polynomial(const std::vector<R> &coefficients);
@@ -36,9 +36,10 @@ public:
   void printAsSequence() const;
   void printAsFunction() const;
   void trim();
-  std::vector<Polynomial<R>> buildSubproductTree(const std::vector<R> &points);
-  std::vector<Polynomial<R>>
-  buildPositiveSubproductTree(const std::vector<R> &points);
+
+  static std::vector<Polynomial<R>>
+  buildSubproductTree(const std::vector<R> &points);
+  static Polynomial<R> buildPolynomial(const std::vector<R> &points);
 };
 
 // Implementierung hier, da Template-Klasse
@@ -176,10 +177,6 @@ template <IsRing R>
 std::pair<Polynomial<R>, Polynomial<R>>
 Polynomial<R>::operator/(const Polynomial<R> &other) const {
   if (other.degree() > degree()) {
-    std::cout << "other: " << other.degree();
-    other.printAsSequence();
-    std::cout << "this: " << degree();
-    printAsSequence();
     throw std::invalid_argument("Der Grad des Divisors darf nicht grösser sein "
                                 "als der des Dividenten!");
   }
@@ -258,44 +255,29 @@ Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
 }
 
 template <IsRing R>
-std::vector<Polynomial<R>>
-Polynomial<R>::buildPolynomial(const std::vector<R> &points) {
+Polynomial<R> Polynomial<R>::buildPolynomial(const std::vector<R> &points) {
 
-  // zuerst werden die Blätter gesetzt
-  std::vector<Polynomial<R>> tree;
+  std::vector<Polynomial<R>> currentLevel;
   for (int i = 0; i < points.size(); i++) {
-    tree.insert(tree.begin() + i, Polynomial<R>({points[i], points[i].one()}));
+    currentLevel.insert(currentLevel.begin() + i,
+                        Polynomial<R>({points[i], points[i].one()}));
   }
 
-  // dann die Ebenen bis zur Wurzel, aber von rechts nach links. Also in
-  // umgekehrter Reihenfolge zu 10.7!
-  // die Tiefe des Baumes k ist durch log2(sizeof points) bestimmt.
-  int k = std::log2(points.size());
-
-  // offset für jede Ebene
-  int levelOffset = 0;
-  int width;
-  for (int i = 1; i <= k; i++) {
-    // std::cout << "Ebene " << i;
-    // Breite auf dieser Ebene: 2^(k-i)
-    // bit shifting für 2er Potenzen
-    width = (1 << (k - i));
-    for (int j = 0; j <= width - 1; j++) {
-      // Die bereits berechneten Polynome aus dem Baum bestimmen:
-      //  - begin() ist ein Iterator, begin() + 1 zeigt auf das
-      //    zweite element und muss noch dereferenziert werden (*)
-      //  - da das Array eindimensional ist, beginnt die zweite Ebene des Baumes
-      //    an der Stelle tree.begin() + levelOffset
-
-      Polynomial<R> M1 = *(tree.begin() + (2 * j) + levelOffset);
-      Polynomial<R> M2 = *(tree.begin() + (2 * j + 1) + levelOffset);
-      Polynomial<R> M = M1 * M2;
-      tree.push_back(M);
+  while (currentLevel.size() > 1) {
+    std::vector<Polynomial<R>> nextLevel;
+    size_t i = 0;
+    while (i + 1 < currentLevel.size()) {
+      Polynomial<R> M = currentLevel[i] * currentLevel[i + 1];
+      nextLevel.push_back(M);
+      i += 2;
     }
-    levelOffset += 2 * width;
+    if (i < currentLevel.size()) {
+      nextLevel.push_back(currentLevel[i]);
+    }
+    currentLevel = std::move(nextLevel);
   }
 
-  return tree;
+  return currentLevel[0];
 }
 
 template <IsRing R>
@@ -303,8 +285,9 @@ std::vector<R> Polynomial<R>::goingDownTheTree(
     const Polynomial<R> &f, const std::vector<Polynomial<R>> &tree,
     const int leftIndex, const int level, const int widthOffset) {
 
-  if (f.degree() == 0)
+  if (f.degree() == 0) {
     return f.getCoefficients();
+  }
 
   auto [q0, r0] = f / tree[leftIndex];
   auto [q1, r1] = f / tree[leftIndex + 1];
@@ -338,12 +321,13 @@ std::vector<R> Polynomial<R>::evalAt(const std::vector<R> &points) {
                          trimmedPoints[0].one());
   }
 
-  std::vector<Polynomial<R>> tree = this->buildSubproductTree(trimmedPoints);
-  std::vector<R> results =
-      this->goingDownTheTree(*this, tree, tree.size() - 3, 1, 0);
+  std::vector<Polynomial<R>> tree = buildSubproductTree(trimmedPoints);
+  std::vector<R> results = goingDownTheTree(*this, tree, tree.size() - 3, 1, 0);
 
+  // uninteressante Punkte wieder entfernen
   if (pointsTrimmed)
     results.resize(points.size());
+
   return results;
 }
 
