@@ -166,52 +166,59 @@ int main() {
   //   std::cout << i.getValue() << ' ';
   // }
 
-  int k = 10;
-  mpz_class N = TestzahlB(k);
-  // Zeitmessung starten---------
-  std::chrono::time_point<std::chrono::high_resolution_clock> start =
-      std::chrono::high_resolution_clock::now();
+  for (int i = 1; i <= 10; i++) {
+    mpz_class N = mpz_class("43214321432432166");
+    mpz_class B("9311321");
 
-  std::vector<mpz_class> factors = primeFactorisation(N, mpz_class("9311"));
+    // Zeitmessung starten---------
+    std::chrono::time_point<std::chrono::high_resolution_clock> start =
+        std::chrono::high_resolution_clock::now();
 
-  // Zeitmessung stoppen----------
-  std::chrono::time_point<std::chrono::high_resolution_clock> end =
-      std::chrono::high_resolution_clock::now();
+    std::vector<mpz_class> factors = primeFactorisation(N, B);
 
-  // Vergangene Zeitspanne bestimmen und ausgeben
-  std::chrono::duration<double, std::milli> float_pollard_ms = end - start;
-  std::cout << "Berechnung in " << float_pollard_ms.count()
-            << " Millisekunden abgeschlossen" << std::endl;
+    // Zeitmessung stoppen----------
+    std::chrono::time_point<std::chrono::high_resolution_clock> end =
+        std::chrono::high_resolution_clock::now();
 
-  std::cout << "Ermittelte Zerlegung von " << N << ":\n";
+    // Vergangene Zeitspanne bestimmen und ausgeben
+    std::chrono::duration<double, std::milli> float_pollard_ms = end - start;
+    std::cout << "\nPollard Strassen Verfahre...\n";
+    std::cout << "Berechnung in " << float_pollard_ms.count()
+              << " Millisekunden abgeschlossen" << std::endl;
 
-  for (auto &i : factors) {
-    std::cout << i << " ";
+    std::cout << "Ermittelte Zerlegung von " << N << ":\n";
+
+    // for (auto &i : factors) {
+    //   std::cout << i << " ";
+    // }
+
+    std::cout << "\n";
+
+    // Schranke: Probedivision bis 10^8
+    // Kann erhöht werden, die Laufzeit wird aber schnell zu groß
+
+    // Zeitmessung starten---------
+    start = std::chrono::high_resolution_clock::now();
+
+    // Probedivision durchführen
+    std::list<Factor> factors2 = trial_division_bounded(N, B);
+
+    // Zeitmessung stoppen----------
+    end = std::chrono::high_resolution_clock::now();
+    // Vergangene Zeitspanne bestimmen und ausgeben
+    std::chrono::duration<double, std::milli> float_probedivision_ms =
+        end - start;
+    std::cout << "\nProbedivision...\n";
+    std::cout << "Berechnung in " << float_probedivision_ms.count()
+              << " Millisekunden abgeschlossen" << std::endl;
+
+    std::cout << "Ermittelte Zerlegung von " << N << ":\n";
+
+    std::list<Factor>::iterator it;
+    for (it = factors2.begin(); it != factors2.end(); it++)
+      it->printpp();
+    std::cout << "\n";
   }
-
-  // Schranke: Probedivision bis 10^8
-  // Kann erhöht werden, die Laufzeit wird aber schnell zu groß
-  mpz_class B("100000000");
-
-  // Zeitmessung starten---------
-  start = std::chrono::high_resolution_clock::now();
-
-  // Probedivision durchführen
-  std::list<Factor> factors2 = trial_division_bounded(N, B);
-
-  // Zeitmessung stoppen----------
-  end = std::chrono::high_resolution_clock::now();
-  // Vergangene Zeitspanne bestimmen und ausgeben
-  std::chrono::duration<double, std::milli> float_probedivision_ms =
-      end - start;
-  std::cout << "Berechnung in " << float_probedivision_ms.count()
-            << " Millisekunden abgeschlossen" << std::endl;
-
-  std::cout << "Ermittelte Zerlegung von " << N << ":\n";
-
-  std::list<Factor>::iterator it;
-  for (it = factors2.begin(); it != factors2.end(); it++)
-    it->printpp();
 
   return 0;
 }
