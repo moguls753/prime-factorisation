@@ -209,18 +209,16 @@ Polynomial<R>::operator/(const Polynomial<R> &other) const {
   return std::make_pair(result, r);
 }
 
-// Methoden für die "fast evaluation"(Algorithmus 10.7)
 // TODO: Brauche ich die Wurzel überhaupt???
-// NOTE: eigentlich hängt diese methode nicht von this ab, es könnte eine
-// "freie" sein.
 template <IsRing R>
 std::vector<Polynomial<R>>
 Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
 
   // zuerst werden die Blätter gesetzt
   std::vector<Polynomial<R>> tree;
+  tree.reserve(2 * points.size() - 1);
   for (int i = 0; i < points.size(); i++) {
-    tree.insert(tree.begin() + i, Polynomial<R>({-points[i], points[i].one()}));
+    tree.push_back(Polynomial<R>({-points[i], points[i].one()}));
   }
 
   // dann die Ebenen bis zur Wurzel, aber von rechts nach links. Also in
@@ -232,7 +230,6 @@ Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
   int levelOffset = 0;
   int width;
   for (int i = 1; i <= k; i++) {
-    // std::cout << "Ebene " << i;
     // Breite auf dieser Ebene: 2^(k-i)
     // bit shifting für 2er Potenzen
     width = (1 << (k - i));
