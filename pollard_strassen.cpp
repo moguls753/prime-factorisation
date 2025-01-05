@@ -12,14 +12,11 @@ mpz_class pollardStrassen(const mpz_class N, mpz_class b) {
   mpz_sqrtrem(c.get_mpz_t(), remainder.get_mpz_t(), b.get_mpz_t());
   c = (remainder != 0) ? (c + 1) : c;
   std::vector<Zmod> points;
-  mpz_class reserveAmount = c - 2;
-  points.reserve(reserveAmount.get_ui());
   for (mpz_class j = 1; j <= c; j++) {
     points.push_back(Zmod(j, N));
   }
   Polynomial<Zmod> f = Polynomial<Zmod>::buildPolynomial(points);
   std::vector<Zmod> ic_points;
-  ic_points.reserve(c.get_ui());
   for (mpz_class i = 0; i < c; i++) {
     ic_points.push_back(Zmod(c * i, N));
   }

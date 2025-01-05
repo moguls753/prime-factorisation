@@ -10,7 +10,6 @@ int main() {
   int choice;
   std::string str;
   mpz_class N("0");
-  mpz_class B("100000");
 
   do {
     std::cout << "Welche Zahl soll faktorisiert werden?\n";
@@ -59,7 +58,9 @@ int main() {
   std::chrono::time_point<std::chrono::high_resolution_clock> start =
       std::chrono::high_resolution_clock::now();
 
-  std::vector<mpz_class> factors = primeFactorisation(N, B);
+  mpz_class b;
+  mpz_sqrt(b.get_mpz_t(), N.get_mpz_t());
+  std::vector<mpz_class> factors = primeFactorisation(N, b);
 
   // Zeitmessung stoppen----------
   std::chrono::time_point<std::chrono::high_resolution_clock> end =
@@ -81,7 +82,7 @@ int main() {
 
   // Schranke: Probedivision bis 10^8
   // Kann erhöht werden, die Laufzeit wird aber schnell zu groß
-  B = mpz_class("100000000");
+  mpz_class B = mpz_class("100000000");
 
   // Zeitmessung starten---------
   start = std::chrono::high_resolution_clock::now();

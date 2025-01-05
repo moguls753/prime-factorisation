@@ -156,7 +156,6 @@ Polynomial<R> Polynomial<R>::operator*(const Polynomial<R> &other) const {
 
   // dim(a*b) = dim(a) + dim(b) = resultCoefficients.size() - 1
   std::vector<R> resultCoefficients;
-  resultCoefficients.reserve((degree() + other.degree()) + 1);
 
   // Faltung der Koeffizienten, also Distributivgesetz aka Ausmultiplizieren
   for (int k = 0; k <= (degree() + other.degree()); k++) {
@@ -217,7 +216,6 @@ Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
 
   // zuerst werden die Blätter gesetzt
   std::vector<Polynomial<R>> tree;
-  tree.reserve(2 * points.size() - 1);
   for (int i = 0; i < points.size(); i++) {
     tree.push_back(Polynomial<R>({-points[i], points[i].one()}));
   }
