@@ -39,6 +39,7 @@ public:
 
   static std::vector<Polynomial<R>>
   buildSubproductTree(const std::vector<R> &points);
+  // erzeugt Polynom aus den Linearfaktoren (x+points[i])
   static Polynomial<R> buildPolynomial(const std::vector<R> &points);
 };
 
@@ -242,6 +243,11 @@ Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
 
       Polynomial<R> M1 = *(tree.begin() + (2 * j) + levelOffset);
       Polynomial<R> M2 = *(tree.begin() + (2 * j + 1) + levelOffset);
+      // std::cout << j << ": ";
+      // M1.printAsSequence();
+      // std::cout << "\n * \n";
+      // M2.printAsSequence();
+      // std::cout << "\n wird berechnet\n";
       Polynomial<R> M = M1 * M2;
       tree.push_back(M);
     }

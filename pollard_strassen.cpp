@@ -7,9 +7,9 @@ mpz_class pollardStrassen(const mpz_class N, mpz_class b) {
   // Schritt 1 und 2
   mpz_class c;
   mpz_class remainder;
+  // c wird das Ergebnis zugewiesen, remainder ist der Rest, die Quadratwurzel
+  // wird von b berechnet
   mpz_sqrtrem(c.get_mpz_t(), remainder.get_mpz_t(), b.get_mpz_t());
-  // Laut Paper wird die wirkliche Wurzel aufgerundet, also wird c erst später
-  // c+1 zugewiesen als hier.
   c = (remainder != 0) ? (c + 1) : c;
   std::vector<Zmod> points;
   mpz_class reserveAmount = c - 2;
@@ -42,7 +42,6 @@ mpz_class pollardStrassen(const mpz_class N, mpz_class b) {
   for (int i = 1; i <= c; i++) {
     if (N % (k * c + i) == 0) {
       d = k * c + i;
-      // std::cout << d << " ";
       if (d > 1)
         break;
     }
