@@ -164,8 +164,9 @@ Polynomial<R> Polynomial<R>::operator*(const Polynomial<R> &other) const {
       // sicherstellen, dass hinter den Grenzen mit 0 multipliziert wird
       R c1 =
           (i < coefficients.size()) ? coefficients[i] : coefficients[0].zero();
-      R c2 = ((k - i) < other.coefficients.size()) ? other.coefficients[k - i]
-                                                   : coefficients[0].zero();
+      R c2 = ((k - i) < other.coefficients.size())
+                 ? other.coefficients[k - i]
+                 : other.coefficients[0].zero();
       sum = sum + c1 * c2;
     }
     resultCoefficients.push_back(sum);
@@ -236,16 +237,12 @@ Polynomial<R>::buildSubproductTree(const std::vector<R> &points) {
       // Die bereits berechneten Polynome aus dem Baum bestimmen:
       //  - begin() ist ein Iterator, begin() + 1 zeigt auf das
       //    zweite element und muss noch dereferenziert werden (*)
-      //  - da das Array eindimensional ist, beginnt die zweite Ebene des Baumes
+      //  - da der Vektor eindimensional ist (im Sinne eines Arrays), beginnt
+      //  die zweite Ebene des Baumes
       //    an der Stelle tree.begin() + levelOffset
 
       Polynomial<R> M1 = *(tree.begin() + (2 * j) + levelOffset);
       Polynomial<R> M2 = *(tree.begin() + (2 * j + 1) + levelOffset);
-      // std::cout << j << ": ";
-      // M1.printAsSequence();
-      // std::cout << "\n * \n";
-      // M2.printAsSequence();
-      // std::cout << "\n wird berechnet\n";
       Polynomial<R> M = M1 * M2;
       tree.push_back(M);
     }
