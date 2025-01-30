@@ -178,8 +178,8 @@ template <IsRing R>
 std::pair<Polynomial<R>, Polynomial<R>>
 Polynomial<R>::operator/(const Polynomial<R> &other) const {
   if (other.degree() > degree()) {
-    throw std::invalid_argument("Der Grad des Divisors darf nicht grösser sein "
-                                "als der des Dividenten!");
+    std::vector<R> zero_coeff{this->coefficients[0].zero()};
+    return {Polynomial(zero_coeff), *this};
   }
   if (!other.leadingCoefficient().isUnit()) {
     throw std::invalid_argument(
